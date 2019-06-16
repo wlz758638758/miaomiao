@@ -1,17 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!-- 移动端的适配 -->
+    <meta name="viewport" content="width=device-width,initial-scale=1.0，user-scalable=no">
+    <!--<%= BASE_URL %> 目录 -->
     <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <link rel="stylesheet" href="<%= BASE_URL %>css/common.css">
+    <link rel="stylesheet" href="<%= BASE_URL %>css/iconfont/iconfont.css">
+
     <title>miaomiao</title>
-  </head>
-  <body>
+</head>
+
+<body>
     <noscript>
       <strong>We're sorry but miaomiao doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>
+    <!-- vue的所有组件都会渲染到这里面来 -->
     <div id="app"></div>
     <!-- built files will be auto injected -->
-  </body>
+</body>
+
 </html>
