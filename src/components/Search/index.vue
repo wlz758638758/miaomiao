@@ -3,13 +3,13 @@
 				<div class="search_input">
 					<div class="search_input_wrapper">
 						<i class="iconfont icon-sousuo"></i>
-						<input type="text">
+						<input type="text" v-model="message">
 					</div>					
 				</div>
 				<div class="search_result">
 					<h3>电影/电视剧/综艺</h3>
 					<ul>
-						<li>
+						<!-- <li>
 							<div class="img"><img src="/images/movie_1.jpg"></div>
 							<div class="info">
 								<p><span>无名之辈</span><span>8.5</span></p>
@@ -18,13 +18,14 @@
 								<p>2018-11-16</p>
 							</div>
 						</li>
-						<li>
-							<div class="img"><img src="/images/movie_1.jpg"></div>
+						 -->
+						 <li v-for="item in movieList" :key="item.id">
+							<div class="img"><img :src=" item.img | setWH(128.180) "></div>
 							<div class="info">
-								<p><span>无名之辈</span><span>8.5</span></p>
-								<p>A Cool Fish</p>
-								<p>剧情,喜剧,犯罪</p>
-								<p>2018-11-16</p>
+								<p><span>{{ item.nm }}</span><span>{{ item.sc }}</span></p>
+								<p>{{ item.enm }}</p>  <!--英语名-->
+								<p>{{ item.cat }}</p>
+								<p>{{ item.rt }}</p>
 							</div>
 						</li>
 					</ul>
@@ -33,9 +34,51 @@
 </template>
 
 <script>
+import { clearTimeout } from 'timers';
 export default {
-    name:'Search'
-}
+    name:'Search',
+	//数据获取.因为不是一来就获取的，所以不能用mounted的，它是需要我们输入input之后再搜索。
+	data(){
+		return{
+			message:'',
+			movieList:[]
+		}
+	},
+	methods:{
+		cancelRequest(){
+			if(typeof this.source === 'function'){
+				this.source('终止请求')
+			}
+		}
+	},
+	//在watch中可以监听，可以进行异步操作
+	watch:{
+		message(newVal){
+			var that=this;
+			this.cancelRequest();
+			//函数防抖 用axios自带的写的
+			// axios终止多次请求,请求之前就会触发这个cancelToken
+			this.axios.get('/api/searchList?cityId=10&kw=a'+newVal,{
+				 cancelToken: new this.axios.CancelToken(function (c){
+                    that.source = c;
+                })
+			}).then((res)=>{
+				var msg=res.data.msg;
+				var movies=res.data.data.movies;//判断影片是否存在
+				if(msg && movies){
+					//两个都满足才拥有搜索结果
+					this.movieList=res.data.data.movies.list;
+				}
+			}).catch((err) =>{
+                if (this.axios.isCancel(err)) {
+                    console.log('Rquest canceled', err.message); //请求如果被取消，这里是返回取消的message
+                } else {
+                    //handle error
+                    console.log(err);
+                }
+		});
+	}
+}}
 </script>
 
 <style scoped>
