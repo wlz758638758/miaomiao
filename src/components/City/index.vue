@@ -28,7 +28,6 @@
 						<li>E</li>
 					</ul>
 				</div> -->
-
                 <div class="city_list">
                     <div class="city_hot">
 						<h2>热门城市</h2>
@@ -63,7 +62,7 @@ export default {
     name:'City',
     //为了将这些数据做成响应式的传进页面，因此可以用data
     data(){
-        return {
+        return{
             cityList: [],
             hotList: []
         }
