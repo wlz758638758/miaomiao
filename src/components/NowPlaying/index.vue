@@ -1,5 +1,8 @@
 <template>
-    <div class="movie_body">
+    <div class="movie_body" ref="movie_body">
+			<Loading v-if="isLoading" />
+			<!-- 父子通信 -->
+			<Scroller v-else :handleToScroll="handleToScroll" :handleToTouchEnd="handleToTouchEnd">
 				<ul>
 					<!-- <li>
 						<div class="pic_show"><img src="/images/movie_1.jpg"></div>
@@ -14,8 +17,9 @@
 						</div>
 					</li> -->
                     <!-- 过滤器可以将我们接收到的值进行过滤 这里的img的width，height需要我们自己设置-->
-                    <li v-for="item in movieList " :key="item.id">
-						<div class="pic_show"><img :src="item.img | setWH('128.180')"></div>
+                    <li class="pullDown">{{ pullDownMsg }}</li>
+					<li v-for="item in movieList " :key="item.id">
+						<div class="pic_show" @tap="handleToDetail"><img :src="item.img | setWH('128.180')"></div>
 						<div class="info_list">
 							<h2>{{item.nm}} <img v-if="item.version" src="@/assets/maxs.png" alt=""></h2>
 							<p>观众评 <span class="grade">{{ item.sc }}</span></p>
@@ -27,27 +31,110 @@
 						</div>
 					</li>
 				</ul>
-			</div>
+			</Scroller>
+	</div>
 </template>
 
 <script>
+
+//import BScroll from 'better-scroll';
+
 export default {
     name:'NowPlaying',
     data(){
         return{
-            movieList:[]
+			movieList:[],
+			pullDownMsg:'',
+			isLoading:true,
+			//城市那里设定的初始id是1或者其他，但是电影这边设置的初始id是-1.与前面的不等
+			prevCityId:-1
         }
-    },
-    mounted(){
-        this.axios.get('/api/movieOnInfoList?cityId=10').then((res)=>{
+	},
+	//mounted生命周期只会触发一次，activated可以触发多次
+    activated(){
+
+		var cityId=this.$store.state.city.id;
+		if(this.prevCityId===cityId){
+			return;
+		}
+		this.isLoading=true;
+		// console.log(123);
+        this.axios.get('/api/movieOnInfoList?cityId='+cityId).then((res)=>{
             var msg=res.data.msg;
             if(msg==='ok'){
                 //更新
-                this.movieList=res.data.data.movieList;
+				this.movieList=res.data.data.movieList;
+				this.isLoading=false;
+				this.prevCityId=cityId;
+				//vue自带的，页面渲染完毕之后再去触发这个回调
+				// this.$nextTick(()=>{
+				// 	//当数据渲染完之后再调用这个滑动组件
+				// 	var scroll=new BScroll( this.$refs.movie_body , {
+				// 		tap:true,
+				// 		probeType:1
+				// 	});
+
+				// 	//下拉滑动触发 pos检测当前的位置，它是一个对象
+				// 	scroll.on('scroll',(pos)=>{
+				// 		if(pos.y>30){
+				// 			this.pullDownMsg='正在更新中';
+				// 		}
+				// 		//console.log('scroll');			
+				// 	});
+
+				// 	//放开之后更新成功
+				// 	scroll.on('touchEnd',(pos)=>{
+				// 		if(pos.y>30){
+				// 			//获取新的影片值
+				// 			this.axios.get('/api/movieOnInfoList?cityId=10').then((res)=>{
+				// 				var msg=res.data.msg;
+           		// 				 if(msg==='ok'){
+				// 						this.pullDownMsg='更新成功';
+				// 						//设置一个定时器让用户看得到停顿的感觉
+				// 						setTimeout(() => {
+				// 							this.movieList=res.data.data.movieList;
+				// 							this.pullDownMsg='';
+				// 						}, 1000);
+				// 					}
+				// 			});
+							
+				// 		}
+				// 		//console.log('touchEnd');
+				// 	});
+				// });
+				
             }
         });
-    }
-}
+	},
+	methods:{
+		//tab的功能，滑动的时候不点击，点击的时候不滑动
+		handleToDetail(){
+			console.log('handleToDetail');
+		},
+		handleToScroll(pos){
+			if(pos.y>30){
+				this.pullDownMsg='正在更新中';
+			}
+		},
+		handleToTouchEnd(pos){
+		if(pos.y>30){
+			//获取新的影片值
+			this.axios.get('/api/movieOnInfoList?cityId=10').then((res)=>{
+				var msg=res.data.msg;
+           		if(msg==='ok'){
+					this.pullDownMsg='更新成功';
+					//设置一个定时器让用户看得到停顿的感觉
+					setTimeout(() => {
+						this.movieList=res.data.data.movieList;
+						this.pullDownMsg='';
+			 		}, 1000);
+				}
+			});
+			}	
+		}
+	}
+}	
+
 </script>
 
 <style scoped>
@@ -63,4 +150,5 @@ export default {
 .movie_body .info_list img{ width:50px; position: absolute; right:10px; top: 5px;}
 .movie_body .btn_mall , .movie_body .btn_pre{ width:47px; height:27px; line-height: 28px; text-align: center; background-color: #f03d37; color: #fff; border-radius: 4px; font-size: 12px; cursor: pointer;}
 .movie_body .btn_pre{ background-color: #3c9fe6;}
+.movie_body .pullDown{margin: 0;padding: 0;border:none;}
 </style>

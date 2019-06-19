@@ -29,11 +29,14 @@
 					</ul>
 				</div> -->
                 <div class="city_list">
+                    <Loading v-if="isLoading"/>
+                     <Scroller v-else ref="city_List">
+                    <div>
                     <div class="city_hot">
 						<h2>热门城市</h2>
 						<ul class="clearfix">
                             <!-- key属性需要唯一值，因此找到id属性即可 -->
-							<li v-for="item in hotList" :key="item.id">{{ item.nm }}</li>
+							<li v-for="item in hotList" :key="item.id" @tap="handleToCity(item.nm,item.id)" >{{ item.nm }}</li>
 						</ul>
 					</div>
                     <!-- 分类 需要做两层的遍历-->
@@ -42,11 +45,14 @@
 							<h2>{{ item.index }}</h2>
 							<ul>
                                 <!-- 遍历 -->
-								<li v-for="itemList in item.list" :key="itemList.id">{{ itemList.nm }}</li>
+								<li v-for="itemList in item.list" :key="itemList.id" @tap="handleToCity(itemList.nm,itemList.id)">{{ itemList.nm }}</li>
 							</ul>
 						</div>
 					</div>
+                    </div>
+                    </Scroller>
                 </div>
+                 
                 <!-- 索引值 -->
                 <div class="city_index">
 					<ul>
@@ -54,6 +60,7 @@
 						<li v-for="(item,index) in cityList" :key="item.index" @touchstart="handleToIndex(index)">{{ item.index }}</li>
 					</ul>
 				</div>
+              
 			</div>
 </template>
 
@@ -64,24 +71,43 @@ export default {
     data(){
         return{
             cityList: [],
-            hotList: []
+            hotList: [],
+            isLoading:'true'
         }
     },
     mounted(){
+
+        //取出数据存储里的城市和热门城市
+        var cityList=window.localStorage.getItem('cityList');
+        var hotList=window.localStorage.getItem('hotList');
+
+        if(cityList&&hotList){
+            this.cityList=JSON.parse(cityList);
+            this.hotList=JSON.parse(hotList);
+                this.isLoading=false;
+        }
+        else{
         this.axios.get('/api/cityList').then((res)=>{
             //做一个数据判断，因为有可能数据是失败的
             var msg=res.data.msg;
             if(msg==='ok'){
                 //暂时存一下城市数据
                 var cities=res.data.data.cities;
-                //分组  [{index:'A',list:[{nm:'阿城',id:123}]}]
+                this.isLoading=false;
+                //分组  [{index:'A',list:[{nm:'阿城',id:123}]}]  
                 var {cityList,hotList} = this.formatCityList(cities);
+               
 
                 //映射
                 this.cityList=cityList;
                 this.hotList=hotList;
+
+                //数据请求成功之后进行本地的存储
+                window.localStorage.setItem('cityList',JSON.stringify(cityList));
+                window.localStorage.setItem('hotList',JSON.stringify(hotList));
            }
         });
+        }
     },
     methods :{
         // 城市排版
@@ -145,8 +171,19 @@ export default {
         handleToIndex(index){
         var h2=this.$refs.city_sort.getElementsByTagName('h2');//因为点击对应的字母需要跳到对应的h2上
         // console.log(this.$refs.city_sort);
-        this.$refs.city_sort.parentNode.scrollTop=h2[index].offsetTop;//滚动的位置等于h2的位置，parentNode是外层的city_list
-         }
+        //因为用了better-scroll，所以原生js的跳转不能用了
+        //this.$refs.city_sort.parentNode.scrollTop=h2[index].offsetTop;//滚动的位置等于h2的位置，parentNode是外层的city_list
+        this.$refs.city_List.toScrollTop(-h2[index].offsetTop);
+       },
+       handleToCity(nm,id){
+           //修改状态管理
+           this.$store.commit('city/CITY_INFO',{nm,id});
+           //记录本地存储
+           window.localStorage.setItem('nowNm',nm);
+           window.localStorage.setItem('nowId',id);
+           //点击城市切换到正在热映
+           this.$router.push('movie/nowPlaying');
+       }
     }
 }
 </script>

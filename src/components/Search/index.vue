@@ -55,10 +55,11 @@ export default {
 	watch:{
 		message(newVal){
 			var that=this;
+			var cityId=this.$store.state.city.id;
 			this.cancelRequest();
 			//函数防抖 用axios自带的写的
 			// axios终止多次请求,请求之前就会触发这个cancelToken
-			this.axios.get('/api/searchList?cityId=10&kw=a'+newVal,{
+			this.axios.get('/api/searchList?cityId='+cityId+'&kw=a'+newVal,{
 				 cancelToken: new this.axios.CancelToken(function (c){
                     that.source = c;
                 })
