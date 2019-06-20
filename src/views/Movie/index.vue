@@ -15,11 +15,11 @@
 				</router-link>
 			</div>
             <keep-alive>
-                 <router-view />
+                 <router-view /><!--显示的是二级路由-->
             </keep-alive>
          </div>
    <TabBar/>
-
+    <router-view name="detail" />
     </div>
 </template>
 
