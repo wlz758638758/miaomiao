@@ -1,7 +1,7 @@
 <template>
     <header id="header">
-			<h1>{{title}}</h1>
-		</header>
+			<slot></slot> <h1>{{title}}</h1>
+	</header>
 </template>
 <script>
 export default {
@@ -9,7 +9,7 @@ export default {
     props:{
         title:{
             type:String,
-            default:'喵喵影院',//默认值
+            default:'喵喵影院'//默认值
         }
     }
 }
